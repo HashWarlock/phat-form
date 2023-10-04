@@ -1,0 +1,14 @@
+{
+  "name": "phat-form",
+  "version": "1.0.0",
+  "author": "HashWarlock <hashwarlock@phala.network>",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "@devphase/service": "^0.5.0",
+    "@types/node": "^18",
+    "typescript": "^5.0.4"
+  }
+}

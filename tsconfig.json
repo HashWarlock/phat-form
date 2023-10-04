@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+
+    "resolveJsonModule": true,
+    "noImplicitAny": false,
+    "noImplicitThis": true,
+    "noImplicitReturns": true,
+    "strictNullChecks": false,
+    "strictPropertyInitialization": false,
+
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [ "./*", ]
+    }
+  },
+  "include": ["**/*.ts", "devphase.config.json"],
+  "exclude": ["node_modules"]
+}

@@ -1,0 +1,30 @@
+[package]
+name = "phat_form"
+version = "0.1.0"
+authors = ["HashWarlock"]
+edition = "2021"
+
+[dependencies]
+ink = { version = "4", default-features = false }
+
+scale = { package = "parity-scale-codec", version = "3", default-features = false, features = ["derive"] }
+scale-info = { version = "2", default-features = false, features = ["derive"], optional = true }
+
+pink-extension = { version = "0.4", default-features = false }
+
+[dev-dependencies]
+pink-extension-runtime = "0.4"
+
+[lib]
+name = "phat_form"
+path = "src/lib.rs"
+
+[features]
+default = ["std"]
+std = [
+    "ink/std",
+    "scale/std",
+    "scale-info/std",
+    "pink-extension/std",
+]
+ink-as-dependency = []
