@@ -107,6 +107,22 @@ mod phat_form {
         }
 
         #[ink(message)]
+        pub fn add_vec_to_whitelist(&mut self, accounts: Vec<AccountId>) -> Result<()> {
+            if self.env().caller() != self.admin {
+                return Err(Error::NoPermissions);
+            }
+            for account in accounts {
+                if !self.whitelist.contains(&account) {
+                    let hacker_id = self.next_hacker_id;
+                    self.whitelist.insert(hacker_id as usize, account);
+                    self.next_hacker_id += 1;
+                }
+            }
+
+            Ok(())
+        }
+
+        #[ink(message)]
         pub fn get_all_hacker_info(&self) -> Result<Vec<HackerInfo>> {
             // Check if caller is admin
             if self.env().caller() != self.admin {
@@ -115,9 +131,10 @@ mod phat_form {
 
             // Get all hacker information
             let mut all_hackers: Vec<HackerInfo> = Vec::new();
-            for id in 1..self.next_hacker_id {
-                let hacker_info = self.hackers.get(id).unwrap();
-                all_hackers.push(hacker_info);
+            for id in 0..self.next_hacker_id {
+                if let Some(hacker_info) = self.hackers.get(id) {
+                    all_hackers.push(hacker_info);
+                };
             }
             if all_hackers.is_empty() {
                 return Err(Error::EmptyHackerInfo);
@@ -264,6 +281,83 @@ mod phat_form {
                 discord: String::from("jane"),
                 twitter: String::from("jane")
             };
+            assert!(contract.add_hacker_info(info_jane).unwrap());
+
+            ink::env::test::set_caller::<pink::PinkEnvironment>(admin);
+
+            // Try to get all hacker info as an admin
+            let all_hacker_info = contract.get_all_hacker_info();
+            let all_unwrap_info = all_hacker_info.unwrap();
+            assert!(!all_unwrap_info.is_empty());
+            assert_eq!(all_unwrap_info.len(), 3);
+
+            ink::env::test::set_caller::<pink::PinkEnvironment>(jane);
+            // Non-admins cannot get all hacker info
+            let non_admin_hacker_info = contract.get_all_hacker_info();
+            assert_eq!(non_admin_hacker_info, Err(Error::NoPermissions));
+        }
+
+        #[ink::test]
+        fn add_vec_to_whitelist_works() {
+            pink_extension_runtime::mock_ext::mock_all_ext();
+            let mut contract = PhatForm::default();
+            // Add test account to whitelist and add hacker info
+            let accounts = ink::env::test::default_accounts::<pink::PinkEnvironment>();
+            let admin = ink::env::account_id::<pink::PinkEnvironment>();
+            let alice = accounts.alice;
+            let john = accounts.bob;
+            let jane = accounts.eve;
+            let account_vec: Vec<AccountId> = vec![alice, john, jane];
+            assert_eq!(contract.add_vec_to_whitelist(account_vec), Ok(()));
+            ink::env::test::set_caller::<pink::PinkEnvironment>(alice);
+            let info = HackerInfo {
+                first_name: String::from("FirstName"),
+                last_name: String::from("LastName"),
+                street_address_1: String::from("StreetAddress1"),
+                street_address_2: Some(String::from("StreetAddress2")),
+                city: String::from("City"),
+                state_region_province: String::from("State"),
+                country: String::from("Country"),
+                po_box: None,
+                email: String::from("Email"),
+                discord: String::from("alice"),
+                twitter: String::from("alice")
+            };
+
+            let info_john = HackerInfo {
+                first_name: String::from("John"),
+                last_name: String::from("Doe"),
+                street_address_1: String::from("1111 Brickhouse Dr."),
+                street_address_2: None,
+                city: String::from("City"),
+                state_region_province: String::from("State/Region/Province"),
+                country: String::from("Country"),
+                po_box: None,
+                email: String::from("Email"),
+                discord: String::from("john"),
+                twitter: String::from("john")
+            };
+
+            let info_jane = HackerInfo {
+                first_name: String::from("Jane"),
+                last_name: String::from("Doe"),
+                street_address_1: String::from("1111 Brickhouse Dr."),
+                street_address_2: None,
+                city: String::from("City"),
+                state_region_province: String::from("State/Region/Province"),
+                country: String::from("Country"),
+                po_box: None,
+                email: String::from("Email"),
+                discord: String::from("jane"),
+                twitter: String::from("jane")
+            };
+            assert!(contract.add_hacker_info(info).unwrap());
+            ink::env::test::set_caller::<pink::PinkEnvironment>(john);
+            // Current account can add hacker info
+            assert!(contract.add_hacker_info(info_john).unwrap());
+            ink::env::test::set_caller::<pink::PinkEnvironment>(jane);
+            // Non-whitelisted account cannot add hacker info
+
             assert!(contract.add_hacker_info(info_jane).unwrap());
 
             ink::env::test::set_caller::<pink::PinkEnvironment>(admin);
